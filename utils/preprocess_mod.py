@@ -28,18 +28,18 @@ def preprocess(docs, nlp, min_length, min_counts, max_counts):
         return [t.lemma_ for t in text
                 if t.is_alpha and len(t) > 2 and not t.is_stop]
 
-    tokenized_docs = [(i, clean_and_tokenize(doc)) for i, doc in tqdm(docs)]
+    tokenized_docs = [(i, clean_and_tokenize(doc), type, stance) for i, doc, type, stance in tqdm(docs)]
 
-    # remove short documents
-    n_short_docs = sum(1 for i, doc in tokenized_docs if len(doc) < min_length)
-    tokenized_docs = [(i, doc) for i, doc in tokenized_docs if len(doc) >= min_length]
+    # # remove short documents
+    n_short_docs = sum(1 for i, doc, _, _ in tokenized_docs if len(doc) < min_length)
+    tokenized_docs = [(i, doc, type, stance) for i, doc, type, stance in tokenized_docs if len(doc) >= min_length]
     print('number of removed short documents:', n_short_docs)
 
-    # remove some tokens
+    # # remove some tokens
     counts = _count_unique_tokens(tokenized_docs)
     tokenized_docs = _remove_tokens(tokenized_docs, counts, min_counts, max_counts)
-    n_short_docs = sum(1 for i, doc in tokenized_docs if len(doc) < min_length)
-    tokenized_docs = [(i, doc) for i, doc in tokenized_docs if len(doc) >= min_length]
+    n_short_docs = sum(1 for i, doc, _, _ in tokenized_docs if len(doc) < min_length)
+    tokenized_docs = [(i, doc, type, stance) for i, doc, type, stance in tokenized_docs if len(doc) >= min_length]
     print('number of additionally removed short documents:', n_short_docs)
 
     counts = _count_unique_tokens(tokenized_docs)
@@ -54,13 +54,13 @@ def preprocess(docs, nlp, min_length, min_counts, max_counts):
 
 def _count_unique_tokens(tokenized_docs):
     tokens = []
-    for i, doc in tokenized_docs:
+    for i, doc, _, _ in tokenized_docs:
         tokens += doc
     return Counter(tokens)
 
 
 def _encode(tokenized_docs, encoder):
-    return [(i, [encoder[t] for t in doc]) for i, doc in tokenized_docs]
+    return [(i, [encoder[t] for t in doc], type, stance) for i, doc, type, stance in tokenized_docs]
 
 
 def _remove_tokens(tokenized_docs, counts, min_counts, max_counts):
@@ -83,7 +83,7 @@ def _remove_tokens(tokenized_docs, counts, min_counts, max_counts):
     for token, count in counts.most_common():
         keep[token] = count >= min_counts and count <= max_counts
 
-    return [(i, [t for t in doc if keep[t]]) for i, doc in tokenized_docs]
+    return [(i, [t for t in doc if keep[t]], type, stance) for i, doc, type, stance in tokenized_docs]
 
 
 def _create_token_encoder(counts):

@@ -150,12 +150,14 @@ def train(data, unigram_distribution, word_vectors,
             if epoch % save_every == 0:
                 print('\nsaving!\n')
                 torch.save(model.state_dict(), str(epoch) + '_epoch_model_state.pytorch')
+                torch.save(model, str(epoch) + '_epoch_model.pytorch')
 
     except (KeyboardInterrupt, SystemExit):
         print(' Interruption detected, exiting the program...')
 
     _write_training_logs(losses)
     torch.save(model.state_dict(), 'model_state.pytorch')
+    torch.save(model, 'model.pytorch')
 
 
 def _write_training_logs(losses):
